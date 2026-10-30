@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+<title>BLS 流程練習</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* 版面：上方模式切換列＋單欄練習區；排序模式為「卡片池 → 你的流程」兩區 */
+:root{
+  --bg:#f3f5f7; --panel:#ffffff; --fg:#1b2430; --muted:#5d6b7b; --line:#d7dee6;
+  --accent:#c8102e; --accent-soft:#fbe7ea; --ok:#1f7a4d; --ok-soft:#e3f3ea; --warn:#a15c00; --warn-soft:#fdf0dc;
+  --f-display:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-body:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171d; --panel:#1b222b; --fg:#e7ecf1; --muted:#9aa8b6; --line:#2e3946;
+  --accent:#ff5a6e; --accent-soft:#3a1d23; --ok:#5fd09a; --ok-soft:#173326; --warn:#f0b35a; --warn-soft:#3a2c17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171d; --panel:#1b222b; --fg:#e7ecf1; --muted:#9aa8b6; --line:#2e3946;
+  --accent:#ff5a6e; --accent-soft:#3a1d23; --ok:#5fd09a; --ok-soft:#173326; --warn:#f0b35a; --warn-soft:#3a2c17; color-scheme:dark}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:860px;margin:0 auto;display:grid;gap:18px}
+header h1{font-family:var(--f-display);font-weight:900;font-size:1.7rem;margin:0;letter-spacing:.02em;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted)}
+.code{font-family:var(--f-mono);font-weight:600;color:var(--accent);letter-spacing:.06em}
+nav{display:flex;flex-wrap:wrap;gap:8px}
+nav button,.btn{font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--panel);color:var(--fg);
+  padding:8px 14px;border-radius:8px;cursor:pointer}
+nav button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:14px;min-width:0}
+.scen-pick{display:flex;flex-wrap:wrap;gap:8px}
+.scen-pick button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:700}
+.task{font-weight:700;font-size:1.05rem}
+.label{font-size:.78rem;letter-spacing:.12em;color:var(--muted);font-weight:700}
+.pool{display:flex;flex-wrap:wrap;gap:8px}
+.card{font:inherit;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;
+  padding:9px 12px;cursor:grab;max-width:100%}
+.card:hover{border-color:var(--fg)}
+.card.bad{animation:shake .35s;border-color:var(--accent);background:var(--accent-soft)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){.card.bad{animation:none}}
+ol.answer{list-style:none;margin:0;padding:12px;border:2px dashed var(--line);border-radius:10px;min-height:64px;display:grid;gap:8px;counter-reset:s}
+ol.answer.over{border-color:var(--accent)}
+ol.answer li{counter-increment:s;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:var(--ok-soft);
+  border-radius:8px;padding:8px 12px}
+ol.answer li::before{content:counter(s);font-family:var(--f-mono);font-weight:600;color:var(--ok)}
+ol.answer li small{display:block;color:var(--muted)}
+ol.answer .empty{background:none;color:var(--muted);grid-template-columns:1fr}
+ol.answer .empty::before{content:none}
+.fb{border-radius:8px;padding:10px 14px;display:none}
+.fb.show{display:block}
+.fb.bad{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.fb.ok{background:var(--ok-soft);border-left:4px solid var(--ok)}
+.fb.tip{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.stat{margin-left:auto;color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums}
+.q{font-weight:700;font-size:1.08rem}
+.opts{display:grid;gap:8px}
+.opt{font:inherit;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:10px 14px;cursor:pointer}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{cursor:default}
+.mnemo{display:flex;flex-wrap:wrap;gap:6px}
+.mnemo span{font-family:var(--f-mono);font-weight:600;border:1px solid var(--line);border-radius:6px;padding:2px 10px}
+.mnemo span.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+footer{color:var(--muted);font-size:.85rem}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>BLS 流程練習</h1>
+    <p>醫療人員口訣 <span class="code">叫・叫・C・A・B・D</span>｜依 2025 AHA，台大全院教育訓練講義整理</p>
+  </header>
+
+  <nav id="modes">
+    <button data-mode="order" aria-pressed="true">① 流程排序</button>
+    <button data-mode="scene" aria-pressed="false">② 情境闖關</button>
+    <button data-mode="num" aria-pressed="false">③ 考官快問</button>
+  </nav>
+
+  <section class="panel" id="orderPanel">
+    <div class="scen-pick" id="seqPick"></div>
+    <div class="task" id="seqTask"></div>
+    <div class="mnemo" id="mnemo"></div>
+    <div>
+      <div class="label">步驟卡（點選，或拖到下方）</div>
+      <div class="pool" id="pool"></div>
+    </div>
+    <div>
+      <div class="label">你的流程</div>
+      <ol class="answer" id="answer"></ol>
+    </div>
+    <div class="fb" id="seqFb"></div>
+    <div class="row">
+      <button class="btn" id="undo">上一步</button>
+      <button class="btn" id="reset">重來</button>
+      <button class="btn" id="hint">提示下一步</button>
+      <span class="stat" id="seqStat"></span>
+    </div>
+  </section>
+
+  <section class="panel" id="qPanel" hidden>
+    <div class="row"><span class="label" id="qLabel"></span><span class="stat" id="qStat"></span></div>
+    <div class="q" id="qText"></div>
+    <div class="opts" id="qOpts"></div>
+    <div class="fb" id="qFb"></div>
+    <div class="row">
+      <button class="btn" id="qPrev">上一題</button>
+      <button class="btn primary" id="qNext">下一題</button>
+      <button class="btn" id="qRestart">從頭再來</button>
+    </div>
+  </section>
+
+  <footer>內容來源：〈基本救命術 BLS〉劉政亨醫師講義（2025 AHA）。技術考以考場評分表為準。</footer>
+</div>
+
+<script>
+// 排序情境：steps 依正確順序；distract 為干擾卡（不屬於流程）
+const SEQ = {
+  adult:{name:"成人 叫叫CABD", task:"成人病人倒地、一動也不動。依序排出你的處置。",
+    mnemo:["叫","叫","C","A","B","D"],
+    steps:[
+      {t:"確認環境安全",why:"先保護自己，現場安全才靠近病人",m:0},
+      {t:"拍肩、大聲呼叫「先生你怎麼了！」看反應",why:"叫：辨識有無意識",m:0},
+      {t:"求救：呼叫支援／撥 119，請人拿 AED",why:"叫：求救＋拿 AED，手機可開擴音不離開病人",m:1},
+      {t:"檢查呼吸與頸動脈脈搏 5–10 秒",why:"數一千零一到一千零七；瀕死喘息不算正常呼吸",m:1},
+      {t:"壓胸 30 下：胸骨下半段，深 5–6 公分，每分鐘 100–120 下，完全回彈",why:"C：高品質 CPR，用力壓、快快壓、胸回彈、莫中斷",m:2},
+      {t:"壓額抬下巴，打開呼吸道",why:"A：舌根後倒是昏迷病人呼吸道阻塞最常見原因；疑頸椎受傷用下顎推擠",m:3},
+      {t:"給氣 2 口，看胸部起伏",why:"B：按壓：給氣＝30:2",m:4},
+      {t:"AED 到了立刻開機使用",why:"D：盡早電擊；全程盡量不中斷壓胸",m:5}],
+    distract:[
+      {t:"先吹 2 口氣再開始壓胸",why:"順序是 C→A→B，先壓胸"},
+      {t:"摸頸動脈 30 秒確認",why:"只摸 5–10 秒，不可拖延壓胸"}]},
+  aed:{name:"AED 操作", task:"AED 送到了，病人仍在 CPR 中。依序排出 AED 操作。",
+    steps:[
+      {t:"打開開關",why:"第一步：開機，跟著語音"},
+      {t:"貼上電極片、插入插頭（左下片貼腋中線）",why:"左下片貼在側邊腋中線；女性可調整胸罩不必脫除"},
+      {t:"分析心律：喊「大家離開」，確認沒人碰病人",why:"分析時不可碰觸病人"},
+      {t:"依建議按電擊：「我離開、你離開、大家都離開」",why:"看所有人都離開、手勢配合，最後才按電擊鍵"},
+      {t:"電擊後立刻接續 CPR 2 分鐘（5 循環）",why:"不要等，馬上壓胸；AED 每 2 分鐘再分析"}],
+    distract:[
+      {t:"先把病人胸前擦乾再等 AED 指示是否壓胸",why:"不在講義流程中；重點是不中斷 CPR"},
+      {t:"成人沒有成人 AED 時改用小兒 AED",why:"成人不可用小兒 AED；小兒可用成人貼片"}]},
+  choke:{name:"異物梗塞", task:"成人吃飯時突然雙手抓喉嚨。依序排出處置（清醒 → 失去意識）。",
+    steps:[
+      {t:"問「你嗆到了嗎？」看能不能咳、能不能說話",why:"先分辨部分阻塞還是幾乎完全阻塞"},
+      {t:"說不出話、咳嗽無聲：站到背後，5 次背部拍擊（兩肩胛骨中央）",why:"2025：不分成人兒童，背拍＋腹推交替"},
+      {t:"5 次腹部推擠（哈姆立克）：拳頭虎口向內放肚臍上方，向內、向後、向上",why:"孕婦後期或環抱不住改胸部推擠"},
+      {t:"背拍 5 下＋腹推 5 下反覆交替，直到異物排出或失去反應",why:"隨時注意是否解除或昏迷"},
+      {t:"失去意識：求救、放平，開始 CPR",why:"已走向心跳停止，直接 CPR"},
+      {t:"每次給氣前先看口中，看到異物才取出",why:"不可盲目用手指挖"}],
+    distract:[
+      {t:"病人還能大聲咳嗽時，立刻做哈姆立克",why:"能咳能說話＝部分阻塞，鼓勵咳嗽、觀察"},
+      {t:"失去意識後用手指盲目伸入口中挖",why:"只有看到異物才取出"}]},
+  infant:{name:"嬰兒 BLS", task:"嬰兒沒有反應。依序排出醫療人員的處置。",
+    steps:[
+      {t:"確認環境安全，呼叫並拍打看反應",why:"同成人：先辨識"},
+      {t:"求救、請人拿 AED",why:"小兒沒有小兒 AED 時可用成人貼片與電量"},
+      {t:"檢查呼吸與肱動脈脈搏 5–10 秒",why:"嬰兒摸肱動脈"},
+      {t:"壓胸：單手掌根或雙拇指環抱，深度胸廓前後徑 1/3–1/2（不超過 6 公分）",why:"2025：不再推薦雙指按壓"},
+      {t:"頭部中立位打開呼吸道（可墊肩，避免過度後仰）",why:"嬰兒不要過度後仰"},
+      {t:"口對口鼻給氣；單人 30:2、雙人 15:2",why:"兩位醫護人員為 15:2"}],
+    distract:[
+      {t:"用食指與中指雙指按壓胸骨",why:"2025 已不推薦雙指按壓"},
+      {t:"頭部盡量後仰打開呼吸道",why:"嬰兒保持中立位"}]}
+};
+
+// 情境闖關：考官一步一步問；opts[0] 為正解，顯示時打亂
+const SCENE = [
+  {q:"你發現成人病人倒地。第一個動作？",opts:["確認環境安全","立刻壓胸","打 119"],why:"叫叫之前先確認環境安全"},
+  {q:"拍肩呼叫沒有反應。下一步？",opts:["大聲求救、請人拿 AED","先摸脈搏 30 秒","先吹兩口氣"],why:"第二個「叫」＝求救＋拿 AED"},
+  {q:"檢查呼吸，病人偶爾大口喘一下（瀕死喘息）。怎麼判斷？",opts:["不算正常呼吸，立刻 CPR","算有呼吸，放復甦姿勢","再觀察 1 分鐘"],why:"瀕死喘息、瀕死抽搐都不算正常呼吸"},
+  {q:"摸頸動脈要摸多久？",opts:["5–10 秒","15–20 秒","30 秒"],why:"數一千零一到一千零七"},
+  {q:"雙手放在哪裡壓？",opts:["兩乳頭連線中點，胸骨下半段","劍突上","胸骨上半段"],why:"胸骨下半段，劍突上方 2–3 公分"},
+  {q:"壓胸 30 下後，下一步？",opts:["壓額抬下巴打開呼吸道，給氣 2 口","繼續壓到 AED 來，不給氣","先摸脈搏"],why:"C→A→B，按壓：給氣＝30:2"},
+  {q:"同事拿 AED 到了，正在壓胸。怎麼做？",opts:["立刻開機貼片，壓胸持續到 AED 分析","先停止壓胸等貼片","做完 5 循環才開 AED"],why:"目擊猝死：AED 一到就用，盡量不中斷"},
+  {q:"AED 說「建議電擊」。按下前要做什麼？",opts:["喊「我離開、你離開、大家都離開」，看所有人離開","直接按","先吹兩口氣"],why:"安全口訣＋目視確認＋手勢"},
+  {q:"電擊完成後？",opts:["立刻接續 CPR 2 分鐘","先摸脈搏確認","等 AED 再分析"],why:"電擊後馬上壓胸"},
+  {q:"做了 2 分鐘，你手很痠。怎麼辦？",opts:["每 2 分鐘換手，累了可提早換","撐到救護車來","放慢到每分鐘 80 下"],why:"每 2 分鐘（5 循環）換手"}
+];
+
+const NUM = [
+  {q:"成人壓胸深度？",opts:["5–6 公分","3–4 公分","超過 7 公分"],why:"用力壓 5–6 公分"},
+  {q:"壓胸速率？",opts:["每分鐘 100–120 下","每分鐘 80–100 下","每分鐘 120–140 下"],why:"快快壓 100–120"},
+  {q:"成人按壓：給氣比？",opts:["30:2","15:2","5:1"],why:"成人單雙人都是 30:2"},
+  {q:"兩位醫護人員救小兒，比率？",opts:["15:2","30:2","10:1"],why:"雙人小兒 15:2"},
+  {q:"已放高級呼吸道的小兒，多久通氣一次？",opts:["每 2–3 秒","每 6 秒","每 10 秒"],why:"每 2–3 秒"},
+  {q:"嬰兒壓胸手法（2025）？",opts:["單手掌根或雙拇指環抱","雙指按壓","雙手掌根"],why:"不再推薦雙指"},
+  {q:"AED 左下貼片位置？",opts:["腋中線（側邊）","左乳頭下方前胸","左上胸"],why:"左下片貼側邊腋中線"},
+  {q:"非目擊猝死，AED 什麼時候分析？",opts:["可先 CPR 2 分鐘再分析","到了立刻分析","CPR 10 分鐘後"],why:"非目擊可先 5 循環"},
+  {q:"孕婦後期異物梗塞？",opts:["改用胸部推擠","照做腹部推擠","只做背拍"],why:"環抱不住或懷孕後期改胸部推擠"},
+  {q:"可以暫停壓胸的時機，哪一個不對？",opts:["只看 EtCO2 下降就停","病人有自主活動","電擊器充電完成準備電擊"],why:"2025：EtCO2 不能當唯一停止壓胸指標"}
+];
+
+const $=s=>document.querySelector(s);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+// ---- 排序模式 ----
+let cur="adult", placed=[], pool=[], miss=0;
+function buildPick(){
+  $("#seqPick").innerHTML=Object.entries(SEQ).map(([k,v])=>`<button class="btn" data-k="${k}" aria-pressed="${k===cur}">${v.name}</button>`).join("");
+  $("#seqPick").querySelectorAll("button").forEach(b=>b.onclick=()=>{cur=b.dataset.k;buildPick();resetSeq()});
+}
+function resetSeq(){
+  const s=SEQ[cur]; placed=[]; miss=0;
+  pool=shuffle([...s.steps.map((x,i)=>({...x,i})),...s.distract.map(x=>({...x,i:-1}))]);
+  $("#seqTask").textContent=s.task; fb("#seqFb",""); renderSeq();
+}
+function renderSeq(){
+  const s=SEQ[cur];
+  $("#mnemo").innerHTML=s.mnemo?s.mnemo.map((m,i)=>{const done=placed.some(p=>s.steps[p].m===i);return `<span class="${done?'on':''}">${m}</span>`}).join(""):"";
+  $("#pool").innerHTML=pool.filter(c=>!placed.includes(c.i)||c.i<0).map((c,idx)=>`<button class="card" draggable="true" data-p="${pool.indexOf(c)}">${c.t}</button>`).join("");
+  $("#pool").querySelectorAll(".card").forEach(el=>{
+    el.onclick=()=>tryPlace(+el.dataset.p,el);
+    el.ondragstart=e=>e.dataTransfer.setData("text/plain",el.dataset.p);
+  });
+  $("#answer").innerHTML=placed.length?placed.map(i=>`<li><div>${s.steps[i].t}<small>${s.steps[i].why}</small></div></li>`).join(""):`<li class="empty">從上面點第一步</li>`;
+  $("#seqStat").textContent=`${placed.length}／${s.steps.length} 步｜放錯 ${miss} 次`;
+}
+function tryPlace(p,el){
+  const s=SEQ[cur], c=pool[p];
+  if(!c||placed.length>=s.steps.length)return;
+  const need=placed.length;
+  if(c.i===need){
+    placed.push(c.i);
+    if(placed.length===s.steps.length) fb("#seqFb",`✅ 全部完成！放錯 ${miss} 次。${miss?"按「重來」再練一次，目標零失誤。":"零失誤，可以換下一個情境。"}`,"ok");
+    else fb("#seqFb","","");
+    renderSeq();
+  }else{
+    miss++;
+    if(el){el.classList.remove("bad");void el.offsetWidth;el.classList.add("bad")}
+    const msg=c.i<0?`這張不屬於正確流程：${c.why}。`:`還不是這一步。「${c.t}」是第 ${c.i+1} 步。`;
+    fb("#seqFb",`❌ ${msg}<br>現在第 ${need+1} 步要做的事，想想：${s.steps[need].why.split("，")[0]}。`,"bad");
+    $("#seqStat").textContent=`${placed.length}／${s.steps.length} 步｜放錯 ${miss} 次`;
+  }
+}
+const ans=$("#answer");
+ans.ondragover=e=>{e.preventDefault();ans.classList.add("over")};
+ans.ondragleave=()=>ans.classList.remove("over");
+ans.ondrop=e=>{e.preventDefault();ans.classList.remove("over");const p=+e.dataTransfer.getData("text/plain");tryPlace(p,$(`.card[data-p="${p}"]`))};
+$("#undo").onclick=()=>{placed.pop();fb("#seqFb","");renderSeq()};
+$("#reset").onclick=resetSeq;
+$("#hint").onclick=()=>{const s=SEQ[cur];if(placed.length<s.steps.length)fb("#seqFb",`💡 第 ${placed.length+1} 步：${s.steps[placed.length].t}`,"tip")};
+
+// ---- 選擇題模式（情境闖關／考官快問共用）----
+let qs=[], qi=0, qMode="scene", answered={}, right=0;
+function startQ(mode){
+  qMode=mode; qs=(mode==="scene"?SCENE:shuffle(NUM)).map(x=>({...x,shown:shuffle(x.opts)})); qi=0; answered={}; right=0; renderQ();
+}
+function renderQ(){
+  const x=qs[qi];
+  $("#qLabel").textContent=qMode==="scene"?"情境闖關｜照現場順序一步一步":"考官快問｜數字與 2025 更新";
+  $("#qStat").textContent=`第 ${qi+1}／${qs.length} 題｜答對 ${right}`;
+  $("#qText").textContent=x.q;
+  const a=answered[qi];
+  $("#qOpts").innerHTML=x.shown.map(o=>{let cls="opt";if(a){if(o===x.opts[0])cls+=" right";else if(o===a)cls+=" wrong"}return `<button class="${cls}" ${a&&a===x.opts[0]?"disabled":""}>${o}</button>`}).join("");
+  $("#qOpts").querySelectorAll(".opt").forEach((b,k)=>b.onclick=()=>pick(x.shown[k]));
+  if(!a)fb("#qFb","");
+  $("#qPrev").disabled=qi===0;
+  $("#qNext").textContent=qi===qs.length-1?"看結果":"下一題";
+}
+function pick(o){
+  const x=qs[qi], first=!(qi in answered);
+  answered[qi]=o;
+  if(o===x.opts[0]){ if(first)right++; renderQ(); fb("#qFb",`✅ 正確。${x.why}`,"ok"); }
+  else{ renderQ(); fb("#qFb",`❌ 正確做法：<b>${x.opts[0]}</b>。${x.why}<br>可以再點一次正確答案記住它。`,"bad"); }
+}
+$("#qPrev").onclick=()=>{if(qi>0){qi--;renderQ()}};
+$("#qNext").onclick=()=>{
+  if(qi<qs.length-1){qi++;renderQ()}
+  else fb("#qFb",`完成！第一次就答對 ${right}／${qs.length} 題。${right<qs.length?"按「從頭再來」再練一輪。":"全對，技術考加油！"}`,"ok");
+};
+$("#qRestart").onclick=()=>startQ(qMode);
+
+function fb(sel,html,kind){const el=$(sel);el.innerHTML=html;el.className="fb"+(html?" show "+kind:"")}
+
+document.querySelectorAll("#modes button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#modes button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  const m=b.dataset.mode;
+  $("#orderPanel").hidden=m!=="order"; $("#qPanel").hidden=m==="order";
+  if(m!=="order")startQ(m);
+});
+buildPick(); resetSeq();
+</script>
+
+</body>
+</html>
